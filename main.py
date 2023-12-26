@@ -3,7 +3,6 @@ import random
 import pygame
 import os
 import numpy as np
-import sys
 import neat
 import pickle
 
@@ -153,12 +152,12 @@ def zufalls_zug(Feld2):
 
 def draw(Feld1,Feld2):
     clock = pygame.time.Clock()
-    clock.tick(10)
+    clock.tick(3)
 
     WIN.blit(Brett,(0,0))
     lä = 50
     hö = 350
-    for x,i in enumerate(Feld1):
+    for x,i in enumerate(Feld2):
 
         if x < 8:
             Zahl = str(i)
@@ -170,7 +169,7 @@ def draw(Feld1,Feld2):
         else:
             hö = 495
             lä = 50
-            for x,i in enumerate(reversed(Feld1)):
+            for x,i in enumerate(reversed(Feld2)):
                 if x < 8:
                     Zahl = str(i)
 
@@ -184,7 +183,7 @@ def draw(Feld1,Feld2):
     i = 7
     while i < 15:
         i += 1
-        Zahl = str(Feld2[i])
+        Zahl = str(Feld1[i])
             
             
         Zahl_txt =  Feld_Font.render(Zahl,1,BLACK)
@@ -193,7 +192,7 @@ def draw(Feld1,Feld2):
 
     hö = 180
     lä = 50
-    for x,i in enumerate(reversed(Feld2)):
+    for x,i in enumerate(reversed(Feld1)):
         if x > 7:
             Zahl = str(i)
 
@@ -223,7 +222,7 @@ def Zug_Spieler1(array,Feld1,Feld2):
 
                     Feld2[x]=1+Feld2[x]
                     Steine=Steine-1
-                    #draw(Feld1,Feld2)
+                    draw(Feld1,Feld2)
                 if Feld2[x]>1:
                     Steine=Feld2[x]
     
@@ -234,10 +233,10 @@ def Zug_Spieler1(array,Feld1,Feld2):
                 else:
                     s = 100
 
-                #draw(Feld1,Feld2)
+                draw(Feld1,Feld2)
             return Feld2,Feld1
 
-def Zug_Spieler2(array,Feld1,Feld2,genome):           
+def Zug_Spieler2(array,Feld1,Feld2):           
             x = array[0]
             s=0
             Steine=Feld1[x]
@@ -252,20 +251,20 @@ def Zug_Spieler2(array,Feld1,Feld2,genome):
         
                     Feld1[x]=1+Feld1[x]
                     Steine=Steine-1
-                    #draw(Feld1,Feld2)  
+                    draw(Feld1,Feld2)  
                 if Feld1[x]>1:
                     Steine=Feld1[x]
     
                     Feld1[x]=0
                     if x<8:
                         Steine=Steine+Feld2[7-x]
-                        genome.fitness += Feld2[7-x]
+                        #genome.fitness += Feld2[7-x]
                         Feld2[7-x]=0
 
                 else:
                     s=100
                 
-            #draw (Feld1,Feld2)   
+            draw (Feld1,Feld2)   
               
             return Feld2,Feld1
 
@@ -386,7 +385,7 @@ def eval_genomes(genomes, config):
                 genome.fitness += 10000/run
                 run = 1000
                 print("gewonnen")
-            #draw (Feld1,Feld2)
+
             array = []
             
 
@@ -428,17 +427,17 @@ Feld2[5],Feld2[6],Feld2[7],Feld2[8],Feld2[9],Feld2[10],Feld2[11],Feld2[12],Feld2
 
 
 def karl_vs_Mensch ():
-    
+
     clock = pygame.time.Clock()
 
     array = []
     run = True
     while run:
         clock.tick(FPS)
-        Myturn = besterzug(Feld1,Feld2)
+        Myturn = besterzug(Feld2,Feld1)
         array.append(Myturn)
         
-        Zug_Spieler1(array,Feld1,Feld2)
+        Zug_Spieler2(array,Feld1,Feld2)
 
 
         array = []
@@ -454,7 +453,7 @@ def karl_vs_Mensch ():
 
                         nix_passiert = mauspoisition(array)
     
-        Zug_Spieler2(array,Feld1,Feld2)
+        Zug_Spieler1(array,Feld1,Feld2)
         array = []
     pygame.quit()
 
@@ -473,6 +472,82 @@ def karl_vs_kai(config):
         pickle.dump(winner, f)
 
 
+def kai_vs_Mensch(config):
+    Feld1 = np.array([0,0,0,0,2,2,2,2,
+        2,2,2,2,2,2,2,2])
+
+    Feld2 = np.array([0,0,0,0,2,2,2,2,
+        2,2,2,2,2,2,2,2])
+
+    array = []
+    with open("best.pickle", "rb") as f:
+        winner = pickle.load(f)
+    net = neat.nn.FeedForwardNetwork.create(winner, config)
+    run = True
+    
+    while run:
+        output = net.activate(
+            (Feld1[0],Feld1[1],Feld1[2],Feld1[3],Feld1[4],Feld1[5],Feld1[6],Feld1[7],Feld1[8],Feld1[9],
+    Feld1[10],Feld1[11],Feld1[12],Feld1[13],Feld1[14],Feld1[15],Feld2[0],Feld2[1],Feld2[2],Feld2[3],Feld2[4],
+    Feld2[5],Feld2[6],Feld2[7],Feld2[8],Feld2[9],Feld2[10],Feld2[11],Feld2[12],Feld2[13],Feld2[14],Feld2[15]))
+
+        list1 = enumerate(output)
+        list2 = sorted  (list1, key=lambda x:x[1])
+
+        decision = []
+
+        for i in reversed(list2):
+                    decision.append(i[0])
+                
+        while len(decision)>1:
+                    if Feld1[decision[0]] > 1:
+
+                        array.append(decision[0])
+                        break
+                    else:
+                        decision.pop(0)
+                
+        if len(array) > 0:
+                    Feld2, Feld1 = Zug_Spieler2(array,Feld1,Feld2)
+
+                    array = []
+        else:
+                    run  = 1000
+        
+        
+        array = []
+        nix_passiert = True
+        while nix_passiert:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        quit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_presses = pygame.mouse.get_pressed()
+                    if mouse_presses[0]:
+
+                            nix_passiert = mauspoisition(array)
+        
+        Zug_Spieler1(array,Feld1,Feld2)
+        array = []
+    pygame.quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config.txt')
@@ -481,5 +556,6 @@ if __name__ == '__main__':
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
     #karl_vs_Mensch ()
-    karl_vs_kai(config)
-    #test_best_network(config)
+    #karl_vs_kai(config)
+    kai_vs_Mensch(config)
+   
